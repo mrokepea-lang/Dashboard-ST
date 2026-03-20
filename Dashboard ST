@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PEA Dashboard - ระบบจัดการข้อมูลและรายงาน กฟภ.</title>
+    
+    <!-- Google Fonts: Prompt -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* จัดการซ่อนข้อความตอนพับ Sidebar */
+        .sidebar-collapsed { width: 5rem; }
+        .sidebar-collapsed .sidebar-text { display: none; }
+        .sidebar-collapsed .sidebar-header { justify-content: center; }
+        .sidebar-collapsed .sidebar-profile { justify-content: center; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="bg-purple-800 text-white transition-all duration-300 flex flex-col w-64 hidden md:flex h-screen flex-shrink-0">
+        <div class="h-16 flex items-center justify-center border-b border-purple-700/50 sidebar-header px-4">
+            <i data-lucide="zap" class="w-8 h-8 text-yellow-400 flex-shrink-0"></i>
+            <span class="ml-3 text-xl font-bold tracking-wider sidebar-text">PEA DASHBOARD</span>
+        </div>
+        
+        <nav class="flex-1 py-6 px-3 space-y-2 overflow-y-auto">
+            <a href="#" class="flex items-center px-3 py-3 rounded-xl transition-all bg-purple-900/50 text-white border-l-4 border-yellow-400">
+                <i data-lucide="layout-dashboard" class="flex-shrink-0"></i>
+                <span class="ml-3 font-medium whitespace-nowrap sidebar-text">หน้าหลัก</span>
+            </a>
+            <a href="#" class="flex items-center px-3 py-3 rounded-xl transition-all text-purple-200 hover:bg-purple-700 hover:text-white border-l-4 border-transparent">
+                <i data-lucide="file-spreadsheet" class="flex-shrink-0"></i>
+                <span class="ml-3 font-medium whitespace-nowrap sidebar-text">ข้อมูลชีต</span>
+            </a>
+            <a href="#" class="flex items-center px-3 py-3 rounded-xl transition-all text-purple-200 hover:bg-purple-700 hover:text-white border-l-4 border-transparent">
+                <i data-lucide="users" class="flex-shrink-0"></i>
+                <span class="ml-3 font-medium whitespace-nowrap sidebar-text">ผู้ใช้ไฟฟ้า</span>
+            </a>
+            <a href="#" class="flex items-center px-3 py-3 rounded-xl transition-all text-purple-200 hover:bg-purple-700 hover:text-white border-l-4 border-transparent">
+                <i data-lucide="credit-card" class="flex-shrink-0"></i>
+                <span class="ml-3 font-medium whitespace-nowrap sidebar-text">การชำระเงิน</span>
+            </a>
+            <a href="#" class="flex items-center px-3 py-3 rounded-xl transition-all text-purple-200 hover:bg-purple-700 hover:text-white border-l-4 border-transparent">
+                <i data-lucide="settings" class="flex-shrink-0"></i>
+                <span class="ml-3 font-medium whitespace-nowrap sidebar-text">ตั้งค่าระบบ</span>
+            </a>
+        </nav>
+        
+        <div class="p-4 border-t border-purple-700/50 flex items-center sidebar-profile">
+            <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-xl font-bold border-2 border-yellow-400 flex-shrink-0">
+                แอด
+            </div>
+            <div class="ml-3 overflow-hidden sidebar-text">
+                <p class="text-sm font-medium truncate">ผู้ดูแลระบบ</p>
+                <p class="text-xs text-purple-300 truncate">admin@pea.co.th</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
+        
+        <!-- Header -->
+        <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-8 z-10 flex-shrink-0">
+            <div class="flex items-center">
+                <button id="toggle-sidebar" class="p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors hidden md:block">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <h1 class="ml-4 text-xl font-semibold text-slate-800 hidden sm:block">ระบบจัดการข้อมูลและรายงาน กฟภ.</h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div class="relative hidden md:block">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" placeholder="ค้นหาข้อมูล..." class="pl-9 pr-4 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-purple-500 outline-none w-64 transition-all" />
+                </div>
+                <button class="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 relative transition-colors">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Scrollable Dashboard Content -->
+        <div class="flex-1 overflow-y-auto p-4 lg:p-8">
+            
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Card 1 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 mb-1">ผู้ใช้ไฟฟ้าทั้งหมด</p>
+                            <h3 class="text-2xl font-bold text-slate-800">24.5 ล้าน</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-purple-100">
+                            <i data-lucide="users" class="w-6 h-6 text-purple-600"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="flex items-center font-medium text-green-600">↑ +1.2%</span>
+                        <span class="ml-2 text-slate-400">เทียบกับเดือนที่แล้ว</span>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 mb-1">หน่วยจำหน่าย (เดือนนี้)</p>
+                            <h3 class="text-2xl font-bold text-slate-800">15,420 GWh</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-yellow-100">
+                            <i data-lucide="zap" class="w-6 h-6 text-yellow-600"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="flex items-center font-medium text-green-600">↑ +3.4%</span>
+                        <span class="ml-2 text-slate-400">เทียบกับเดือนที่แล้ว</span>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 mb-1">รายได้ประเมิน</p>
+                            <h3 class="text-2xl font-bold text-slate-800">฿ 65.2B</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-green-100">
+                            <i data-lucide="trending-up" class="w-6 h-6 text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="flex items-center font-medium text-red-600">↓ -0.5%</span>
+                        <span class="ml-2 text-slate-400">เทียบกับเดือนที่แล้ว</span>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 mb-1">สถานะระบบไฟฟ้า</p>
+                            <h3 class="text-2xl font-bold text-slate-800">ปกติ</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-100">
+                            <i data-lucide="check-circle-2" class="w-6 h-6 text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="font-medium text-slate-600">100% ออนไลน์</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Bar Chart -->
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-6">แนวโน้มการใช้พลังงานและรายได้ (ปี 2026)</h3>
+                    <div class="h-72 w-full relative">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Pie Chart -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-6">สัดส่วนประเภทผู้ใช้ไฟฟ้า</h3>
+                    <div class="h-64 w-full flex justify-center items-center relative">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Google Sheet Data Table -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
+                <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center">
+                            <i data-lucide="file-spreadsheet" class="w-5 h-5 text-green-600 mr-2"></i>
+                            ข้อมูลเรียลไทม์จาก Google Sheet
+                        </h3>
+                        <p class="text-sm text-slate-500 mt-1">
+                            กำลังดึงข้อมูลจากเอกสารที่คุณระบุ (อัปเดตอัตโนมัติ)
+                        </p>
+                    </div>
+                    <button id="btn-refresh" class="px-4 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center">
+                        กำลังโหลดข้อมูล...
+                    </button>
+                </div>
+
+                <div class="p-6">
+                    <!-- Loading State -->
+                    <div id="state-loading" class="flex flex-col items-center justify-center py-12 text-purple-600">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-700 mb-4"></div>
+                        <p class="font-medium">กำลังโหลดข้อมูลจาก Google Sheet...</p>
+                    </div>
+
+                    <!-- Error State -->
+                    <div id="state-error" class="hidden bg-red-50 border border-red-200 text-red-700 px-6 py-8 rounded-xl flex flex-col items-center text-center">
+                        <i data-lucide="alert-circle" class="w-12 h-12 text-red-500 mb-4"></i>
+                        <p class="font-semibold text-lg" id="error-message">ไม่สามารถดึงข้อมูลได้</p>
+                        <p class="text-sm mt-2 max-w-lg">
+                            โปรดเข้าไปที่ Google Sheet ของคุณ &gt; คลิกปุ่ม Share (แชร์) มุมขวาบน &gt; เปลี่ยนสิทธิ์ในส่วน General access ให้เป็น "Anyone with the link" (ทุกคนที่มีลิงก์)
+                        </p>
+                        <a id="sheet-link" href="#" target="_blank" rel="noreferrer" class="mt-4 inline-block px-4 py-2 bg-white text-red-600 font-medium rounded-lg border border-red-200 hover:bg-red-50 transition-colors">
+                            เปิด Google Sheet
+                        </a>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="state-empty" class="hidden text-center py-12 text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                        <i data-lucide="file-spreadsheet" class="w-12 h-12 mx-auto text-slate-400 mb-3"></i>
+                        <p class="font-medium text-lg">ไม่พบข้อมูลใน Sheet</p>
+                        <p class="text-sm">โปรดตรวจสอบว่ามีข้อมูลในชีตแรกของเอกสารหรือไม่</p>
+                    </div>
+
+                    <!-- Table State -->
+                    <div id="state-table" class="hidden overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="text-xs text-slate-700 uppercase bg-slate-50 border-b border-slate-200" id="table-head">
+                                <!-- Headers go here -->
+                            </thead>
+                            <tbody id="table-body">
+                                <!-- Rows go here -->
+                            </tbody>
+                        </table>
+                        <div id="table-footer" class="hidden p-4 bg-slate-50 border-t border-slate-200 text-center text-sm text-slate-500">
+                            <!-- Footer message goes here -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script>
+        // กำหนดรหัส Google Sheet
+        const SHEET_ID = '1ft3cEGHEf6NQmxO9QrEhYQlg1dPm0DGkHgLacF0pAbI';
+        
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Sidebar Toggle Logic
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('sidebar-collapsed');
+        });
+
+        // Setup Charts (Chart.js)
+        function initCharts() {
+            // สีธีม: ม่วง, ม่วงอ่อน, เหลืองทอง
+            const colors = {
+                purple: '#7B3896',
+                purpleLight: '#9D4EDD',
+                yellow: '#FBBF24'
+            };
+
+            // Bar Chart
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.'],
+                    datasets: [
+                        {
+                            label: 'หน่วยไฟฟ้า (GWh)',
+                            data: [4000, 3000, 2000, 2780, 1890, 2390],
+                            backgroundColor: colors.purple,
+                            yAxisID: 'y',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'รายได้ (ล้านบาท)',
+                            data: [2400, 1398, 9800, 3908, 4800, 3800],
+                            backgroundColor: colors.yellow,
+                            yAxisID: 'y1',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'Prompt' } } },
+                        tooltip: { titleFont: { family: 'Prompt' }, bodyFont: { family: 'Prompt' } }
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { type: 'linear', display: true, position: 'left', grid: { borderDash: [3, 3] } },
+                        y1: { type: 'linear', display: true, position: 'right', grid: { display: false } }
+                    }
+                }
+            });
+
+            // Pie Chart
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['ที่อยู่อาศัย', 'ธุรกิจขนาดเล็ก', 'อุตสาหกรรม'],
+                    datasets: [{
+                        data: [60, 25, 15],
+                        backgroundColor: [colors.purple, colors.purpleLight, colors.yellow],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'Prompt' } } },
+                        tooltip: { bodyFont: { family: 'Prompt' } }
+                    }
+                }
+            });
+        }
+
+        // Google Sheet Data Fetching Logic
+        async function fetchGoogleSheetData() {
+            const btnRefresh = document.getElementById('btn-refresh');
+            const elLoading = document.getElementById('state-loading');
+            const elError = document.getElementById('state-error');
+            const elEmpty = document.getElementById('state-empty');
+            const elTable = document.getElementById('state-table');
+            const tHead = document.getElementById('table-head');
+            const tBody = document.getElementById('table-body');
+            const tFooter = document.getElementById('table-footer');
+            const sheetLink = document.getElementById('sheet-link');
+
+            // Set link
+            sheetLink.href = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
+
+            // Reset view
+            btnRefresh.disabled = true;
+            btnRefresh.innerHTML = 'กำลังโหลดข้อมูล...';
+            elLoading.classList.remove('hidden');
+            elError.classList.add('hidden');
+            elEmpty.classList.add('hidden');
+            elTable.classList.add('hidden');
+
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const text = await response.text();
+                const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+                const json = JSON.parse(jsonString);
+
+                if (json.table && json.table.cols && json.table.rows) {
+                    const cols = json.table.cols.map((c, index) => c.label || `Column ${index + 1}`);
+                    const rows = json.table.rows;
+
+                    if (rows.length > 0) {
+                        // Create Header
+                        tHead.innerHTML = `<tr>${cols.map(col => `<th scope="col" class="px-6 py-4 font-semibold whitespace-nowrap">${col}</th>`).join('')}</tr>`;
+
+                        // Create Body (Limit to 10 rows for display)
+                        tBody.innerHTML = rows.slice(0, 10).map(row => {
+                            return `<tr class="bg-white border-b hover:bg-slate-50 transition-colors last:border-0">
+                                ${cols.map((col, index) => {
+                                    let val = row.c[index] ? row.c[index].v : '';
+                                    let content = val;
+                                    
+                                    // สร้าง Badge สีตามข้อความ
+                                    if (typeof val === 'string') {
+                                        if (val.includes('สำเร็จ') || val.includes('ปกติ') || val.includes('ชำระแล้ว')) {
+                                            content = `<span class="px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">${val}</span>`;
+                                        } else if (val.includes('รอ') || val.includes('ค้าง')) {
+                                            content = `<span class="px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">${val}</span>`;
+                                        } else if (val.includes('ยกเลิก') || val.includes('ผิดพลาด')) {
+                                            content = `<span class="px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">${val}</span>`;
+                                        }
+                                    }
+                                    return `<td class="px-6 py-4 whitespace-nowrap">${content || '-'}</td>`;
+                                }).join('')}
+                            </tr>`;
+                        }).join('');
+
+                        // Show footer if more than 10 rows
+                        if (rows.length > 10) {
+                            tFooter.innerHTML = `แสดงข้อมูล 10 รายการล่าสุด จากทั้งหมด ${rows.length} รายการ`;
+                            tFooter.classList.remove('hidden');
+                        } else {
+                            tFooter.classList.add('hidden');
+                        }
+
+                        elTable.classList.remove('hidden');
+                    } else {
+                        elEmpty.classList.remove('hidden');
+                    }
+                } else {
+                    throw new Error('รูปแบบข้อมูลไม่ถูกต้อง');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('error-message').innerText = 'ไม่สามารถดึงข้อมูลได้ โปรดตรวจสอบการตั้งค่าการแชร์ไฟล์ชีตของคุณ';
+                elError.classList.remove('hidden');
+            } finally {
+                elLoading.classList.add('hidden');
+                btnRefresh.disabled = false;
+                btnRefresh.innerHTML = 'รีเฟรชข้อมูล';
+            }
+        }
+
+        // On Load
+        window.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            fetchGoogleSheetData();
+
+            // Bind refresh button
+            document.getElementById('btn-refresh').addEventListener('click', fetchGoogleSheetData);
+        });
+    </script>
+</body>
+</html>
